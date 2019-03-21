@@ -12,8 +12,8 @@ type validator interface {
 	Validate() error
 }
 
-// Validate checks if unary incoming proto is Valid
-func Validate(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (_ interface{}, err error) {
+// Validator checks if unary incoming proto is Valid
+func Validator(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (_ interface{}, err error) {
 	if v, ok := req.(validator); ok {
 		if err := v.Validate(); err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, err.Error())
@@ -22,8 +22,8 @@ func Validate(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, 
 	return handler(ctx, req)
 }
 
-// ValidateStream checks if stream incoming proto is Valid
-func ValidateStream(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+// ValidatorStream checks if stream incoming proto is Valid
+func ValidatorStream(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 	wrapper := &recvWrapper{ss}
 	return handler(srv, wrapper)
 }
