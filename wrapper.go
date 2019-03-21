@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // WrappedServerStream is a thin wrapper around grpc.ServerStream that allows modifying context.
@@ -24,4 +26,12 @@ func WrapServerStream(stream grpc.ServerStream) *WrappedServerStream {
 		return existing
 	}
 	return &WrappedServerStream{ServerStream: stream, WrappedContext: stream.Context()}
+}
+
+// convert non grpc err to grpc error with given code.
+func errorConvertor(err error, code codes.Code) error {
+	if _, ok := status.FromError(err); !ok {
+		return status.Error(code, err.Error())
+	}
+	return err
 }

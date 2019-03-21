@@ -5,7 +5,6 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type validator interface {
@@ -15,8 +14,8 @@ type validator interface {
 // Validator checks if unary incoming proto is Valid
 func Validator(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (_ interface{}, err error) {
 	if v, ok := req.(validator); ok {
-		if err := v.Validate(); err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, err.Error())
+		if err = v.Validate(); err != nil {
+			return nil, errorConvertor(err, codes.InvalidArgument)
 		}
 	}
 	return handler(ctx, req)
@@ -32,13 +31,13 @@ type recvWrapper struct {
 	grpc.ServerStream
 }
 
-func (s *recvWrapper) RecvMsg(m interface{}) error {
-	if err := s.ServerStream.RecvMsg(m); err != nil {
+func (s *recvWrapper) RecvMsg(m interface{}) (err error) {
+	if err = s.ServerStream.RecvMsg(m); err != nil {
 		return err
 	}
 	if v, ok := m.(validator); ok {
-		if err := v.Validate(); err != nil {
-			return status.Errorf(codes.InvalidArgument, err.Error())
+		if err = v.Validate(); err != nil {
+			return errorConvertor(err, codes.InvalidArgument)
 		}
 	}
 	return nil
